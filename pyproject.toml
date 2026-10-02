@@ -1,0 +1,32 @@
+[project]
+name = "cloud-ui-monorepo"
+version = "0.1.0"
+description = "Cloud experimentation monorepo"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.20.0",
+    "ruff>=0.9.0",
+    "vulture>=2.14",
+    "pytest>=8.0.0",
+]
+
+[tool.basedpyright]
+pythonVersion = "3.13"
+typeCheckingMode = "standard"
+exclude = [
+    ".venv",
+    ".githooks",
+    "build",
+    "dist"
+]
+
+[tool.vulture]
+min_confidence = 80
+exclude = [".venv", ".githooks"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100

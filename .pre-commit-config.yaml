@@ -1,0 +1,54 @@
+# .pre-commit-config.yaml
+# Declarative pre-commit configuration for CI and local workflows
+default_stages: [pre-commit]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-json
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.10
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.97.0
+    hooks:
+      - id: terraform_fmt
+
+  - repo: local
+    hooks:
+      - id: basedpyright
+        name: Basedpyright Type Checker
+        entry: uv run basedpyright
+        language: system
+        types: [python]
+        pass_filenames: true
+
+      - id: vulture
+        name: Vulture Dead Code Finder
+        entry: uv run vulture --min-confidence 80
+        language: system
+        types: [python]
+        pass_filenames: true
+
+      - id: block-ai-slop-placeholders
+        name: Block AI Slop & Truncation
+        entry: bash -c '! git diff --cached -U0 --no-prefix -- . ":(exclude).githooks/*" ":(exclude).pre-commit-config.yaml" ":(exclude)*.md" | grep -E "^\+[^+]" | grep -E -i "(\.\.\. (existing|rest of|remaining|unchanged) code \.\.\.|<YOUR_[A-Z0-9_]+>|\[YOUR_[A-Z0-9_]+\]|YOUR_API_KEY_HERE|<REPLACE_ME>|pass[[:space:]]+#[[:space:]]*(todo|implement))"'
+        language: system
+        pass_filenames: false
+
+      - id: block-framework-creep
+        name: Block Framework & Legacy Dependency Creep
+        entry: bash -c 'for f in $(git diff --cached --name-only); do case "$(basename "$f")" in package.json|package-lock.json|yarn.lock|pnpm-lock.yaml|bun.lockb|requirements.txt|Pipfile|Pipfile.lock|*.tfstate|*.tfstate.*) echo "ERROR: Blocked file violating monorepo conventions: $f"; exit 1;; esac; done'
+        language: system
+        pass_filenames: false
